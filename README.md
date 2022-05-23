@@ -1,4 +1,4 @@
-##How to use this box with Vagrant:
+## How to use this box with Vagrant:
 
 ```
 Vagrant.configure("2") do |config|
