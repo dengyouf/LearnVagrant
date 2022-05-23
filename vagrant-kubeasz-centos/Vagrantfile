@@ -1,0 +1,73 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+#
+Vagrant.configure("2") do |config|
+    config.vm.box = "centos-7.9"
+    config.ssh.forward_agent = true
+    config.ssh.insert_key = false
+    config.hostmanager.enabled = true
+    config.cache.scope = :box
+   
+    # We need two haproxy  machine to manage the cluster
+    config.vm.define "k8s-ansible" do |ansible|
+      ansible.vm.hostname = "k8s-ansible"
+      ansible.vm.network :private_network, ip: "192.168.56.200"
+      ansible.vm.provider :virtualbox do |vb|
+        vb.customize ["modifyvm", :id, "--memory", "1024"]
+        vb.customize ["modifyvm", :id, "--cpus", "1"]
+        vb.customize ["modifyvm", :id, "--natdnshostresolver1", "on"]
+      end
+      ansible.vm.provision :shell, path: "bootstrap.sh"
+    end
+
+    # We need two haproxy  machine to manage the cluster
+    config.vm.define "ha-lb1" do |halb1|
+      halb1.vm.hostname = "ha-lb1"
+      halb1.vm.network :private_network, ip: "192.168.56.10"
+      halb1.vm.provider :virtualbox do |vb|
+        vb.customize ["modifyvm", :id, "--memory", "1024"]
+        vb.customize ["modifyvm", :id, "--cpus", "1"]
+        vb.customize ["modifyvm", :id, "--natdnshostresolver1", "on"]
+      end
+      halb1.vm.provision :shell, path: "bootstrap.sh"
+    end
+  
+    config.vm.define "ha-lb2" do |halb2|
+      halb2.vm.hostname = "ha-lb2"
+      halb2.vm.network :private_network, ip: "192.168.56.20"
+      halb2.vm.provider :virtualbox do |vb|
+        vb.customize ["modifyvm", :id, "--memory", "1024"]
+        vb.customize ["modifyvm", :id, "--cpus", "1"]
+        vb.customize ["modifyvm", :id, "--natdnshostresolver1", "on"]
+      end
+      config.vm.provision :shell, path: "bootstrap.sh"
+   
+    end
+  
+    # We provision three nodes to be master servers
+    (1..3).each do |i|
+      config.vm.define "k8s-master#{i}" do |config|
+        config.vm.hostname = "k8s-master-#{i}"
+        config.vm.network :private_network, ip: "192.168.56.#{i+10}"
+        config.vm.provider :virtualbox do |vb|
+            vb.customize ["modifyvm", :id, "--memory", "2048"]
+            vb.customize ["modifyvm", :id, "--cpus", "2"]
+            vb.customize ["modifyvm", :id, "--natdnshostresolver1", "on"]
+          end
+        config.vm.provision :shell, path: "bootstrap.sh"
+      end
+    end
+    # We provision three nodes to be worker servers
+    (1..3).each do |i|
+        config.vm.define "k8s-node#{i}" do |config|
+          config.vm.hostname = "k8s-node-#{i}"
+          config.vm.network :private_network, ip: "192.168.56.#{i+20}"
+          config.vm.provider :virtualbox do |vb|
+            vb.customize ["modifyvm", :id, "--memory", "4096"]
+            vb.customize ["modifyvm", :id, "--cpus", "2"]
+            vb.customize ["modifyvm", :id, "--natdnshostresolver1", "on"]
+          end
+          config.vm.provision :shell, path: "bootstrap.sh"
+        end
+      end
+  end

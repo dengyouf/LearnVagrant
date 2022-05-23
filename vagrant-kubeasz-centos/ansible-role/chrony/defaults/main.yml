@@ -1,0 +1,5 @@
+---
+# defaults file for chrony
+
+timezone: "Asia/Shanghai"
+ntp_server: "ntp.aliyun.com"

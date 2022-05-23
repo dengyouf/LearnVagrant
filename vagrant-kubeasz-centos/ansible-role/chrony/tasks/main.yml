@@ -1,0 +1,25 @@
+---
+# tasks file for chrony
+
+- name: yum 卸载 ntp
+  shell: 'yum remove -y ntp'
+  when: 'ansible_distribution in ["CentOS","RedHat","Amazon","Aliyun"]'
+  args:
+      warn: false
+  ignore_errors: true
+
+- name: 设置 Asia/Shanghai 时区
+  shell: "timedatectl set-timezone {{ timezone }}"
+
+- name: yum 安装 chrony
+  yum: name=chrony state=present
+
+- name: 配置 chrony server
+  template: src=chrony.conf.j2 dest=/etc/chrony.conf backup=yes
+
+- name: 开机启用 chronyd 服务
+  shell: systemctl enable chronyd && systemctl restart chronyd
+
+- name: 显示 chrony 信息
+  shell: "chronyc sources"
+

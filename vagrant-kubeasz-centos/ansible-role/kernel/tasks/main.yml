@@ -1,0 +1,5 @@
+---
+# tasks file for kernel
+
+- name: Run a update script 
+  ansible.builtin.script: files/update.sh
