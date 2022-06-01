@@ -1,0 +1,50 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+#
+Vagrant.configure("2") do |config|
+    config.vm.box = "dengyouf/centos-docker79_20-10-0"
+    config.ssh.forward_agent = true
+    config.ssh.insert_key = false
+    config.hostmanager.enabled = true
+    config.cache.scope = :box
+   
+    # We need two haproxy  machine to manage the cluster
+    config.vm.define "rke-lb" do |lb|
+      lb.vm.hostname = "rke-lb"
+      lb.vm.network :private_network, ip: "192.168.56.101"
+      lb.vm.provider :virtualbox do |vb|
+        vb.customize ["modifyvm", :id, "--memory", "1024"]
+        vb.customize ["modifyvm", :id, "--cpus", "1"]
+        vb.customize ["modifyvm", :id, "--natdnshostresolver1", "on"]
+      end
+      lb.vm.provision :shell, path: "bootstrap.sh"
+    end
+
+    # We provision three nodes to be rke master servers
+    (1..3).each do |i|
+      config.vm.define "rke-master#{i}" do |config|
+        config.vm.hostname = "rke-master-#{i}"
+        config.vm.network :private_network, ip: "192.168.56.#{i+110}"
+        config.vm.provider :virtualbox do |vb|
+            vb.customize ["modifyvm", :id, "--memory", "4096"]
+            vb.customize ["modifyvm", :id, "--cpus", "4"]
+            vb.customize ["modifyvm", :id, "--natdnshostresolver1", "on"]
+          end
+        config.vm.provision :shell, path: "bootstrap.sh"
+      end
+    end
+
+    # We provision two nodes to be worker servers
+    (1..2).each do |i|
+      config.vm.define "rke-worker#{i}" do |config|
+        config.vm.hostname = "rke-worker-#{i}"
+        config.vm.network :private_network, ip: "192.168.56.#{i+210}"
+        config.vm.provider :virtualbox do |vb|
+            vb.customize ["modifyvm", :id, "--memory", "4096"]
+            vb.customize ["modifyvm", :id, "--cpus", "4"]
+            vb.customize ["modifyvm", :id, "--natdnshostresolver1", "on"]
+          end
+        config.vm.provision :shell, path: "bootstrap.sh"
+      end
+    end
+end

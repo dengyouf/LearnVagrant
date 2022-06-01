@@ -1,0 +1,1 @@
+{"virtualbox":{"/vagrant":{"guestpath":"/vagrant","hostpath":"/Users/dengyou/Vagrant_Pro/vagrant-rke-centos-docker","disabled":false,"__vagrantfile":true},"vagrant-cache":{"id":"vagrant-cache","guestpath":"/tmp/vagrant-cache","hostpath":"/Users/dengyou/.vagrant.d/cache/dengyouf/centos-docker79_20-10-0","disabled":false,"__vagrantfile":true}}}
